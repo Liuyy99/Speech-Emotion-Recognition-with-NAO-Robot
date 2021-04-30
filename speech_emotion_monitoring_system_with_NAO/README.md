@@ -1,0 +1,1 @@
+# Speech Emotion Monitoring System with NAO robot
