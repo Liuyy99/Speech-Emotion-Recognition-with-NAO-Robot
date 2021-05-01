@@ -4,7 +4,7 @@ from __future__ import division
 
 import numpy as np
 import tensorflow as tf
-from src.acrnn1 import acrnn
+from src.acrnn import acrnn
 import cPickle
 from sklearn.metrics import recall_score as recall
 from sklearn.metrics import confusion_matrix as confusion
@@ -22,13 +22,12 @@ tf.app.flags.DEFINE_integer('image_channel', 3, 'image channels as input')
 
 # Normalized by neutral
 tf.app.flags.DEFINE_string('traindata_path', '/home/yiyang/Test_on_Casia/IEMOCAP_normalized_by_neutral_session_2.pkl', 'total dataset includes training set')
-# tf.app.flags.DEFINE_string('traindata_path', '/home/yiyang/Test_on_Casia/CASIA_normalized_by_neutral.pkl', 'total dataset includes training set')
 
 FLAGS = tf.app.flags.FLAGS
 
 def load_data(in_dir):
     f = open(in_dir, 'rb')
-    test_data, test_label, Test_label, pernums_test = cPickle.load(f)
+    train_data, train_label, test_data, test_label, valid_data, valid_label, Valid_label, Test_label, pernums_test, pernums_valid = cPickle.load(f)
     return test_data,test_label,Test_label,pernums_test
 
 
@@ -105,12 +104,16 @@ def test():
     
 #     folder_path = "./checkpoint_lr_0.00001_optimize_ua_4_dataset_combined_no_casia_iemocap_round2_recontinue"
 #     models_name = ["model4.ckpt-211"]
+    
+#     folder_path = "./checkpoint_lr_0.00001_optimize_sad_F1_score_4_dataset_combined_no_casia_iemocap_round2_second_recontinue"
+#     models_name = ["model4.ckpt-6", "model4.ckpt-16"]
 
     folder_path = "./checkpoint_lr_0.00001_optimize_sad_F1_score_EmoDB"
-    models_name = ["model4.ckpt-1216", "model4.ckpt-771"]
+    models_name = ["model4.ckpt-1216", "model4.ckpt-771", "model4.ckpt-656", "model4.ckpt-616", "model4.ckpt-586"]
 
 #     folder_path = "./checkpoint_lr_0.00001_optimize_ua_times_sad_4_dataset_combined_no_casia_iemocap_round1"
-#     models_name = ["model4.ckpt-5001"]
+#     models_name = ["model4.ckpt-5001", "model4.ckpt-1281"]
+
     
     with tf.Session() as sess:
         sess.run(init)

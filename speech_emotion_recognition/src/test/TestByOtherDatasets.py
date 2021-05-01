@@ -4,7 +4,7 @@ from __future__ import division
 
 import numpy as np
 import tensorflow as tf
-from src.acrnn1 import acrnn
+from src.acrnn import acrnn
 import cPickle
 from sklearn.metrics import recall_score as recall
 from sklearn.metrics import confusion_matrix as confusion
@@ -20,13 +20,15 @@ tf.app.flags.DEFINE_integer('image_height', 300, 'image height')
 tf.app.flags.DEFINE_integer('image_width', 40, 'image width')
 tf.app.flags.DEFINE_integer('image_channel', 3, 'image channels as input')
 
-tf.app.flags.DEFINE_string('traindata_path', './CombinedEmotions_4_datasets_combined_SI40.pkl', 'total dataset includes training set')
-FLAGS = tf.app.flags.FLAGS
+# Normalized by neutral
+tf.app.flags.DEFINE_string('traindata_path', '/home/yiyang/Test_on_Casia/IEMOCAP_normalized_by_neutral_session_2.pkl', 'total dataset includes training set')
+# tf.app.flags.DEFINE_string('traindata_path', '/home/yiyang/Test_on_Casia/CASIA_normalized_by_neutral.pkl', 'total dataset includes training set')
 
+FLAGS = tf.app.flags.FLAGS
 
 def load_data(in_dir):
     f = open(in_dir, 'rb')
-    train_data, train_label, test_data, test_label, valid_data, valid_label, Valid_label, Test_label, pernums_test, pernums_valid = cPickle.load(f)
+    test_data, test_label, Test_label, pernums_test = cPickle.load(f)
     return test_data,test_label,Test_label,pernums_test
 
 
@@ -74,15 +76,18 @@ def test():
     saver = tf.train.Saver(tf.global_variables())
     init = tf.global_variables_initializer()
 
-#     folder_path = "./checkpoint_lr_0.00001_optimize_ua_times_sad_4_dataset_combined_no_casia_iemocap"
+#     folder_path = "./checkpoint_lr_0.00001_optimize_ua_times_sad_4_dataset_combined_no_casia_iemocap_round1"
 #     models_name = ["model4.ckpt-5001", "model4.ckpt-1281", "model4.ckpt-1196", "model4.ckpt-1081", "model4.ckpt-1076", "model4.ckpt-986"]
-
+    
+#     folder_path = "./checkpoint_lr_0.00001_optimize_ua_4_dataset_combined_no_casia_iemocap_round1"
+#     models_name = ["model4.ckpt-1496", "model4.ckpt-891", "model4.ckpt-831", "model4.ckpt-746"]
+    
+#     folder_path = "./checkpoint_lr_0.00001_optimize_sad_F1_score_4_dataset_combined_no_casia_iemocap"
+#     models_name = ["model4.ckpt-741", "model4.ckpt-591", "model4.ckpt-561", "model4.ckpt-546", "model4.ckpt-461"]
+    
 #     folder_path = "./checkpoint_lr_0.00001_optimize_ua_times_sad_all_dataset_combined"
 #     models_name = ["model4.ckpt-4471", "model4.ckpt-3431", "model4.ckpt-3021", "model4.ckpt-2906", "model4.ckpt-2901", "model4.ckpt-2151", "model4.ckpt-1801"]
     
-#     folder_path = "./checkpoint_lr_0.00001_optimize_ua_times_sad_all_dataset_combined_2nd_round"
-#     models_name = ["model4.ckpt-2556", "model4.ckpt-1921", "model4.ckpt-1166", "model4.ckpt-1161"]
-
 #     folder_path = "./checkpoint_lr_0.00001_optimize_ua_4_dataset_combined_no_casia_iemocap_round1"
 #     models_name = ["model4.ckpt-1496", "model4.ckpt-891", "model4.ckpt-831", "model4.ckpt-746", "model4.ckpt-741"]
     
@@ -99,11 +104,14 @@ def test():
 #     models_name = ["model4.ckpt-241", "model4.ckpt-236", "model4.ckpt-226"]
     
 #     folder_path = "./checkpoint_lr_0.00001_optimize_ua_4_dataset_combined_no_casia_iemocap_round2_recontinue"
-#     models_name = ["model4.ckpt-241", "model4.ckpt-211"]
+#     models_name = ["model4.ckpt-211"]
 
-    folder_path = "./checkpoint_lr_0.00001_optimize_ua_times_sad_4_dataset_combined_no_casia_iemocap"
-    models_name = ["model4.ckpt-5001", "model4.ckpt-1281"]
+    folder_path = "./checkpoint_lr_0.00001_optimize_sad_F1_score_EmoDB"
+    models_name = ["model4.ckpt-1216", "model4.ckpt-771"]
 
+#     folder_path = "./checkpoint_lr_0.00001_optimize_ua_times_sad_4_dataset_combined_no_casia_iemocap_round1"
+#     models_name = ["model4.ckpt-5001"]
+    
     with tf.Session() as sess:
         sess.run(init)
         for model_name in models_name:
@@ -186,6 +194,6 @@ def test():
             unweighted_average_precision = unweighted_average_precision / num_emotion
             unweighted_average_F1_score = unweighted_average_F1_score / num_emotion
             print("UA: { Recall:", unweighted_average_recall, ", Precision:", unweighted_average_precision, ", F1 Score:", unweighted_average_F1_score, "}")
-            
+
 if __name__ == '__main__':
     test()

@@ -1,8 +1,10 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """
-This module provide a utility functions used cross the project.
+This module provides a utility functions used cross the project.
 """
+
+from __future__ import division
 
 import wave
 
@@ -52,3 +54,26 @@ def add_padding(mel_spec, delta1, delta2):
     delta21 = np.pad(delta2, ((0, 300 - delta2.shape[0]), (0, 0)), 'constant',
                      constant_values=0)
     return part, delta11, delta21
+
+
+def dense_to_one_hot(labels_dense, num_classes):
+    """Convert class labels from scalars to one-hot vectors."""
+    num_labels = labels_dense.shape[0]
+    index_offset = np.arange(num_labels) * num_classes
+    labels_one_hot = np.zeros((num_labels, num_classes))
+    labels_one_hot.flat[index_offset + labels_dense.ravel()] = 1
+    return labels_one_hot
+
+
+def calculate_metric(confusion_matrix, emotion_num_actual, emotion_num_predicted, emotion):
+    emotion_recall = confusion_matrix[emotion][emotion] / emotion_num_actual[emotion]
+    if emotion_num_predicted[emotion] == 0:
+        emotion_precision = 0
+        emotion_F1_score = 0
+    else:
+        emotion_precision = confusion_matrix[emotion][emotion] / emotion_num_predicted[emotion]
+        if emotion_recall == 0:
+            emotion_F1_score = 0
+        else:
+            emotion_F1_score = 2 * emotion_precision * emotion_recall / (emotion_precision + emotion_recall)
+    return emotion_recall, emotion_precision, emotion_F1_score
