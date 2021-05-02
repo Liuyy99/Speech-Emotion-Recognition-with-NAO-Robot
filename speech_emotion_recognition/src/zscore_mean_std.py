@@ -53,6 +53,8 @@ def get_mean_std(combined_train_data, dataset_indices):
         dataset_mean3[index] = mean3
         dataset_std3[index] = std3
 
+    # print("mean1 of corpus EmoDB: ", dataset_mean1["DG"])
+
     output = './zscore_4_datasets_' + str(filter_num) + '.pkl'
     f = open(output, 'wb')
     cPickle.dump((dataset_mean1, dataset_std1, dataset_mean2, dataset_std2, dataset_mean3, dataset_std3), f)
@@ -91,7 +93,7 @@ def read_combined_dataset():
     neutral_train_num_DU = 72  # Urdu
     neutral_train_num_DR = 382  # RAVDESS
     neutral_train_num_DS = 110  # SAVEE
-    
+
     # number of neutral utterances (1 recording is 1 utterance)
     # utterance_nums = {"DG": 104, "DU": 72, "DR": 192, "DS": 60}
 

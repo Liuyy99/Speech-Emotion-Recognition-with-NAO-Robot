@@ -18,7 +18,6 @@ from support import read_file, extract_3d_mel, add_padding, generate_label
 
 eps = 1e-5
 filter_num = 40
-dataset_mean1, dataset_std1, dataset_mean2, dataset_std2, dataset_mean3, dataset_std3 = tuple({} for i in range(6))
 # 1336 train utterance --> 2158 train 2s segments
 angnum = 463  # 0
 sadnum = 515  # 1
@@ -29,12 +28,13 @@ neunum = 702  # 3
 def load_mean_std():
     """Load neutral means and standard deviations for z-score normalization"""
     f = open('./zscore_4_datasets_40.pkl', 'rb')
-    global dataset_mean1, dataset_std1, dataset_mean2, dataset_std2, dataset_mean3, dataset_std3
     dataset_mean1, dataset_std1, dataset_mean2, dataset_std2, dataset_mean3, dataset_std3 = cPickle.load(f)
+    return dataset_mean1, dataset_std1, dataset_mean2, dataset_std2, dataset_mean3, dataset_std3
 
 
 def add_to_list(data, label, num, emo_num, dataset_index, emotion, static, delta1, delta2):
     """Add data to training, validation or test data list"""
+    dataset_mean1, dataset_std1, dataset_mean2, dataset_std2, dataset_mean3, dataset_std3 = load_mean_std()
     data[num, :, :, 0] = (static - dataset_mean1[dataset_index])/(dataset_std1[dataset_index] + eps)
     data[num, :, :, 1] = (delta1 - dataset_mean2[dataset_index])/(dataset_std2[dataset_index] + eps)
     data[num, :, :, 2] = (delta2 - dataset_mean3[dataset_index])/(dataset_std3[dataset_index] + eps)
@@ -149,7 +149,7 @@ def read_combined_dataset():
     pernums_train = np.arange(trnum)  # remember each training utterance contain how many segments
     pernums_valid = np.arange(vnum)  # remember each validating utterance contain how many segments
     pernums_test = np.arange(tnum)  # remember each testing utterance contain how many segments
-    
+
     # EmoDB, Urdu, RAVDESS, SAVEE
     rootdir = '../combined_4_dataset'
 
@@ -172,7 +172,7 @@ def read_combined_dataset():
     train_emo = {'hap': 0, 'ang': 0, 'neu': 0, 'sad': 0}
     test_emo = {'hap': 0, 'ang': 0, 'neu': 0, 'sad': 0}
     valid_emo = {'hap': 0, 'ang': 0, 'neu': 0, 'sad': 0}
-    
+
     dataset_train_nums = {"DG": 0, "DU": 0, "DR": 0, "DS": 0}
     dataset_valid_nums = {"DG": 0, "DU": 0, "DR": 0, "DS": 0}
     dataset_test_nums = {"DG": 0, "DU": 0, "DR": 0, "DS": 0}
@@ -197,7 +197,7 @@ def read_combined_dataset():
         for record in os.listdir(sub_dir):
             if record.startswith('.'):
                 continue
-            
+
             record_path = os.path.join(sub_dir, record)
             dataset_index = record[0:2]
 
@@ -225,7 +225,7 @@ def read_combined_dataset():
                     valid_label[vnum] = em
                     valid_num, vnum = extract_features(record_path, pernums_valid, vnum, valid_num, valid_data,
                                                        Valid_label, valid_emo, dataset_index, emotion)
-    
+
     print("train_num: ", train_num)
     print("valid_num: ", valid_num)
     print("test_num: ", test_num)

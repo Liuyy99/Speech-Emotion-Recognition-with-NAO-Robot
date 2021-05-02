@@ -1,9 +1,18 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """
-Usage:
+Usage: build_model.py
 
-Description:
+Description: This script establishes and trains the ACRNN model by the combined training set. The model was trained
+by minimizing the cross-entropy loss with Adam optimizer. Data were batched into batch size=60. Batch normalization
+was done to accelerate the training process.
+
+Every five epochs, the obtained model was evaluated on validation set. If the model outperformed all previous models,
+it will be saved as the so-far best model.
+
+In each round of training, top models are selected by 2 different criteria. One is by optimizing the Unweighted
+Average (UA) Recall on validation set (to get good overall performance). The other is by optimizing the UA Recall *
+Sad Recall on validation set (to get good overall performance, as well as the sad recognition performance).
 """
 
 # from __future__ import absolute_import
@@ -41,6 +50,7 @@ FLAGS = tf.app.flags.FLAGS
 
 
 def load_data(in_dir):
+    """Load training, validation and test data"""
     f = open(in_dir, 'rb')
     train_data, train_label, test_data, test_label, valid_data, valid_label, Valid_label, Test_label, pernums_test, \
         pernums_valid = cPickle.load(f)
@@ -135,9 +145,9 @@ def train():
                 valid_precision_ua = precision(np.argmax(valid_label, 1), np.argmax(y_valid, 1), average='macro')
                 # there are two ways of calculating macro f1 score
                 # way 1: f1 of unweighted average recall and precision
-                valid_f1_ua = 2 * valid_recall_ua * valid_precision_ua / (valid_recall_ua + valid_precision_ua)
+                # valid_f1_ua = 2 * valid_recall_ua * valid_precision_ua / (valid_recall_ua + valid_precision_ua)
                 # way 2: unweighted average of class-wise f1 scores
-                # valid_f1_ua = f1(np.argmax(valid_label, 1), np.argmax(y_valid, 1), average='macro')
+                valid_f1_ua = f1(np.argmax(valid_label, 1), np.argmax(y_valid, 1), average='macro')
 
                 # calculate class-wise metrics
                 emotion_indices = {"Angry": 0, "Sad": 1, "Happy": 2, "Neutral": 3}
@@ -177,6 +187,7 @@ def train():
                 print("Performance on validation set:")
                 print("Sad F1 Score: %3.4g" % valid_emotion_F1_scores[sad_index])
                 print("UA F1 Score: %3.4g" % valid_f1_ua)
+                print("*****************************************************************")
 
 
 if __name__ == '__main__':
