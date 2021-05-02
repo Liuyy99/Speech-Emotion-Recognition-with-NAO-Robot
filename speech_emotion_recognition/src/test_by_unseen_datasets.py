@@ -104,9 +104,9 @@ def test():
 
             # there are two ways of calculating macro f1 score
             # way 1: f1 of unweighted average recall and precision
-            # test_f1_ua = 2 * test_recall_ua * test_precision_ua / (test_recall_ua + test_precision_ua)
+            test_f1_ua = 2 * test_recall_ua * test_precision_ua / (test_recall_ua + test_precision_ua)
             # way 2: unweighted average of class-wise f1 scores
-            test_f1_ua = f1(np.argmax(test_label, 1), np.argmax(y_test, 1), average='macro')
+            # test_f1_ua = f1(np.argmax(test_label, 1), np.argmax(y_test, 1), average='macro')
 
             # calculate class-wise metrics
             emotion_indices = {"Angry": 0, "Sad": 1, "Happy": 2, "Neutral": 3}

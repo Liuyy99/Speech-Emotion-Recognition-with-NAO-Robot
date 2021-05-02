@@ -145,9 +145,9 @@ def train():
                 valid_precision_ua = precision(np.argmax(valid_label, 1), np.argmax(y_valid, 1), average='macro')
                 # there are two ways of calculating macro f1 score
                 # way 1: f1 of unweighted average recall and precision
-                # valid_f1_ua = 2 * valid_recall_ua * valid_precision_ua / (valid_recall_ua + valid_precision_ua)
+                valid_f1_ua = 2 * valid_recall_ua * valid_precision_ua / (valid_recall_ua + valid_precision_ua)
                 # way 2: unweighted average of class-wise f1 scores
-                valid_f1_ua = f1(np.argmax(valid_label, 1), np.argmax(y_valid, 1), average='macro')
+                # valid_f1_ua = f1(np.argmax(valid_label, 1), np.argmax(y_valid, 1), average='macro')
 
                 # calculate class-wise metrics
                 emotion_indices = {"Angry": 0, "Sad": 1, "Happy": 2, "Neutral": 3}
