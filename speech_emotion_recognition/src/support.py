@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """
-This module provides a utility functions used cross the project.
+This module provided functions used cross the whole project.
 """
 
 from __future__ import division
@@ -13,6 +13,7 @@ import python_speech_features as ps
 
 
 def read_file(filename):
+    """read the speech file in .wav format"""
     speech_file = wave.open(filename, 'r')
     params = speech_file.getparams()
     n_channels, samp_width, framerate, wav_length = params[:4]
@@ -24,6 +25,7 @@ def read_file(filename):
 
 
 def generate_label(emotion):
+    """generate an index for each emotion"""
     if emotion == 'ang':
         label = 0
     elif emotion == 'sad':
@@ -39,6 +41,7 @@ def generate_label(emotion):
 
 
 def extract_3d_mel(data, rate, filter_num):
+    """Extract 3-d (static, delta, delta-delta) mel spectrogram from the speech"""
     mel_spec = ps.logfbank(data, rate, nfilt=filter_num)
     delta1 = ps.delta(mel_spec, 2)
     delta2 = ps.delta(delta1, 2)
@@ -47,6 +50,7 @@ def extract_3d_mel(data, rate, filter_num):
 
 
 def add_padding(mel_spec, delta1, delta2):
+    """The input size of CNN is 300 (frames) * 40 (filter). Add padding to short segments"""
     part = np.pad(mel_spec, ((0, 300 - mel_spec.shape[0]), (0, 0)), 'constant',
                   constant_values=0)
     delta11 = np.pad(delta1, ((0, 300 - delta1.shape[0]), (0, 0)), 'constant',
@@ -63,17 +67,3 @@ def dense_to_one_hot(labels_dense, num_classes):
     labels_one_hot = np.zeros((num_labels, num_classes))
     labels_one_hot.flat[index_offset + labels_dense.ravel()] = 1
     return labels_one_hot
-
-
-def calculate_metric(confusion_matrix, emotion_num_actual, emotion_num_predicted, emotion):
-    emotion_recall = confusion_matrix[emotion][emotion] / emotion_num_actual[emotion]
-    if emotion_num_predicted[emotion] == 0:
-        emotion_precision = 0
-        emotion_F1_score = 0
-    else:
-        emotion_precision = confusion_matrix[emotion][emotion] / emotion_num_predicted[emotion]
-        if emotion_recall == 0:
-            emotion_F1_score = 0
-        else:
-            emotion_F1_score = 2 * emotion_precision * emotion_recall / (emotion_precision + emotion_recall)
-    return emotion_recall, emotion_precision, emotion_F1_score

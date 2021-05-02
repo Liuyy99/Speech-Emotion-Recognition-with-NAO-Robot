@@ -27,12 +27,14 @@ neunum = 702  # 3
 
 
 def load_mean_std():
+    """Load neutral means and standard deviations for z-score normalization"""
     f = open('./zscore_4_datasets_40.pkl', 'rb')
     global dataset_mean1, dataset_std1, dataset_mean2, dataset_std2, dataset_mean3, dataset_std3
     dataset_mean1, dataset_std1, dataset_mean2, dataset_std2, dataset_mean3, dataset_std3 = cPickle.load(f)
 
 
 def add_to_list(data, label, num, emo_num, dataset_index, emotion, static, delta1, delta2):
+    """Add data to training, validation or test data list"""
     data[num, :, :, 0] = (static - dataset_mean1[dataset_index])/(dataset_std1[dataset_index] + eps)
     data[num, :, :, 1] = (delta1 - dataset_mean2[dataset_index])/(dataset_std2[dataset_index] + eps)
     data[num, :, :, 2] = (delta2 - dataset_mean3[dataset_index])/(dataset_std3[dataset_index] + eps)
@@ -43,6 +45,7 @@ def add_to_list(data, label, num, emo_num, dataset_index, emotion, static, delta
 
 
 def balance_training_data(train_num, train_label, train_data, pernum):
+    """Randomly select equal number of data for each emotion"""
     hap_index = np.arange(hapnum)
     neu_index = np.arange(neunum)
     sad_index = np.arange(sadnum)
@@ -100,15 +103,52 @@ def balance_training_data(train_num, train_label, train_data, pernum):
     return Train_data, Train_label
 
 
-def read_combined_dataset():
-    tnum = 324  # the number of test utterance
-    vnum = 329  # the number of validate utterance
-    test_num = 510  # the number of test 2s segments
-    valid_num = 527  # the number of validate 2s segments
+def extract_features(record_path, pernums_set, u_num, set_num, set_data, set_label, set_emo, dataset_index, emotion):
+    """Extract 3-d mel-spectrogram, format it to 300 (frames) * 40 (filter) segments."""
+    data, time, rate = read_file(record_path)
+    mel_spec, delta1, delta2, time = extract_3d_mel(data, rate, filter_num)
 
-    train_num = 2158  # the number of train 2s segments
-    pernums_test = np.arange(tnum)  # remember each test utterance contain how many segments
-    pernums_valid = np.arange(vnum)  # remember each valid utterance contain how many segments
+    if time <= 300:
+        pernums_set[u_num] = 1
+        u_num = u_num + 1
+
+        static1, delta11, delta21 = add_padding(mel_spec, delta1, delta2)
+
+        add_to_list(set_data, set_label, set_num, set_emo, dataset_index, emotion, static1, delta11,
+                    delta21)
+        set_num = set_num + 1
+
+    else:
+        pernums_set[u_num] = 2
+        u_num = u_num + 1
+
+        static1 = mel_spec[0:300, :]
+        delta11 = delta1[0:300, :]
+        delta21 = delta2[0:300, :]
+        static2 = mel_spec[time - 300:time, :]
+        delta12 = delta1[time - 300:time, :]
+        delta22 = delta2[time - 300:time, :]
+
+        add_to_list(set_data, set_label, set_num, set_emo, dataset_index, emotion, static1, delta11,
+                    delta21)
+        set_num = set_num + 1
+        add_to_list(set_data, set_label, set_num, set_emo, dataset_index, emotion, static2, delta12,
+                    delta22)
+        set_num = set_num + 1
+
+    return set_num, u_num
+
+
+def read_combined_dataset():
+    train_num = 2158  # the number of training 2s segments
+    trnum = 1336  # the number of training utterances
+    valid_num = 527  # the number of validating 2s segments
+    vnum = 329  # the number of validating utterances
+    test_num = 510  # the number of testing 2s segments
+    tnum = 324  # the number of testing utterances
+    pernums_train = np.arange(trnum)  # remember each training utterance contain how many segments
+    pernums_valid = np.arange(vnum)  # remember each validating utterance contain how many segments
+    pernums_test = np.arange(tnum)  # remember each testing utterance contain how many segments
     
     # EmoDB, Urdu, RAVDESS, SAVEE
     rootdir = '../combined_4_dataset'
@@ -123,11 +163,12 @@ def read_combined_dataset():
     test_data = np.empty((test_num, 300, filter_num, 3), dtype=np.float32)
     valid_data = np.empty((valid_num, 300, filter_num, 3), dtype=np.float32)
 
-    tnum = 0
+    trnum = 0
     vnum = 0
+    tnum = 0
     train_num = 0
-    test_num = 0
     valid_num = 0
+    test_num = 0
     train_emo = {'hap': 0, 'ang': 0, 'neu': 0, 'sad': 0}
     test_emo = {'hap': 0, 'ang': 0, 'neu': 0, 'sad': 0}
     valid_emo = {'hap': 0, 'ang': 0, 'neu': 0, 'sad': 0}
@@ -160,35 +201,13 @@ def read_combined_dataset():
             record_path = os.path.join(sub_dir, record)
             dataset_index = record[0:2]
 
-            data, time, rate = read_file(record_path)
-            mel_spec, delta1, delta2, time = extract_3d_mel(data, rate, filter_num)
-
             is_training_set, is_validation_set, is_test_set = split_dataset(record)
 
             if is_training_set:
                 # training set
                 dataset_train_nums[dataset_index] = dataset_train_nums[dataset_index] + 1
-                if time <= 300:
-                    static1, delta11, delta21 = add_padding(mel_spec, delta1, delta2)
-
-                    add_to_list(train_data, train_label, train_num, train_emo, dataset_index, emotion, static1, delta11,
-                                delta21)
-                    train_num = train_num + 1
-
-                else:
-                    static1 = mel_spec[0:300, :]
-                    delta11 = delta1[0:300, :]
-                    delta21 = delta2[0:300, :]
-                    static2 = mel_spec[time - 300:time, :]
-                    delta12 = delta1[time - 300:time, :]
-                    delta22 = delta2[time - 300:time, :]
-
-                    add_to_list(train_data, train_label, train_num, train_emo, dataset_index, emotion, static1, delta11,
-                                delta21)
-                    train_num = train_num + 1
-                    add_to_list(train_data, train_label, train_num, train_emo, dataset_index, emotion, static2, delta12,
-                                delta22)
-                    train_num = train_num + 1
+                train_num, trnum = extract_features(record_path, pernums_train, trnum, train_num, train_data,
+                                                    train_label, train_emo, dataset_index, emotion)
 
             else:
                 em = generate_label(emotion)
@@ -196,64 +215,16 @@ def read_combined_dataset():
                     # test_set
                     dataset_test_nums[dataset_index] = dataset_test_nums[dataset_index] + 1
                     test_label[tnum] = em
-                    if time <= 300:
-                        pernums_test[tnum] = 1
-                        tnum = tnum + 1
-
-                        static1, delta11, delta21 = add_padding(mel_spec, delta1, delta2)
-
-                        add_to_list(test_data, Test_label, test_num, test_emo, dataset_index, emotion, static1,
-                                    delta11, delta21)
-                        test_num = test_num + 1
-                    else:
-                        pernums_test[tnum] = 2
-                        tnum = tnum + 1
-
-                        static1 = mel_spec[0:300, :]
-                        delta11 = delta1[0:300, :]
-                        delta21 = delta2[0:300, :]
-                        static2 = mel_spec[time - 300:time, :]
-                        delta12 = delta1[time - 300:time, :]
-                        delta22 = delta2[time - 300:time, :]
-
-                        add_to_list(test_data, Test_label, test_num, test_emo, dataset_index, emotion, static1,
-                                    delta11, delta21)
-                        test_num = test_num + 1
-                        add_to_list(test_data, Test_label, test_num, test_emo, dataset_index, emotion, static2,
-                                    delta12, delta22)
-                        test_num = test_num + 1
+                    test_num, tnum = extract_features(record_path, pernums_test, tnum, test_num, test_data, Test_label,
+                                                      test_emo, dataset_index, emotion)
 
                 elif is_validation_set:
                     # valid_set
                     dataset_valid_nums[dataset_index] = dataset_valid_nums[dataset_index] + 1
                     em = generate_label(emotion)
                     valid_label[vnum] = em
-                    if time <= 300:
-                        pernums_valid[vnum] = 1
-                        vnum = vnum + 1
-
-                        static1, delta11, delta21 = add_padding(mel_spec, delta1, delta2)
-
-                        add_to_list(valid_data, Valid_label, valid_num, valid_emo, dataset_index, emotion, static1,
-                                    delta11, delta21)
-                        valid_num = valid_num + 1
-                    else:
-                        pernums_valid[vnum] = 2
-                        vnum = vnum + 1
-
-                        static1 = mel_spec[0:300, :]
-                        delta11 = delta1[0:300, :]
-                        delta21 = delta2[0:300, :]
-                        static2 = mel_spec[time - 300:time, :]
-                        delta12 = delta1[time - 300:time, :]
-                        delta22 = delta2[time - 300:time, :]
-
-                        add_to_list(valid_data, Valid_label, valid_num, valid_emo, dataset_index, emotion, static1,
-                                    delta11, delta21)
-                        valid_num = valid_num + 1
-                        add_to_list(valid_data, Valid_label, valid_num, valid_emo, dataset_index, emotion, static2,
-                                    delta12, delta22)
-                        valid_num = valid_num + 1
+                    valid_num, vnum = extract_features(record_path, pernums_valid, vnum, valid_num, valid_data,
+                                                       Valid_label, valid_emo, dataset_index, emotion)
     
     print("train_num: ", train_num)
     print("valid_num: ", valid_num)

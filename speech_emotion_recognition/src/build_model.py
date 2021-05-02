@@ -15,10 +15,12 @@ import cPickle
 import numpy as np
 import tensorflow as tf
 from sklearn.metrics import recall_score as recall
+from sklearn.metrics import precision_score as precision
+from sklearn.metrics import f1_score as f1
 from sklearn.metrics import confusion_matrix as confusion
 
 from acrnn import acrnn
-from support import dense_to_one_hot, calculate_metric
+from support import dense_to_one_hot
 
 tf.app.flags.DEFINE_integer('num_epoch', 2001, 'The number of epoches for training.')
 tf.app.flags.DEFINE_integer('num_classes', 4, 'The number of emotion classes.')
@@ -125,49 +127,27 @@ def train():
                     y_valid[s, :] = np.max(y_pred_valid[index:index + pernums_valid[s], :], 0)
                     index = index + pernums_valid[s]
 
-                valid_recall_ua = recall(np.argmax(valid_label, 1), np.argmax(y_valid, 1), average='macro')
+                # generate confusion matrix
                 valid_conf = confusion(np.argmax(valid_label, 1), np.argmax(y_valid, 1))
-                
-                # Calculate Recall, Precision, F1 Score for each emotion
-                emotion_recalls = {"Angry": 0, "Sad": 0, "Happy": 0, "Neutral": 0}
-                emotion_precisions = {"Angry": 0, "Sad": 0, "Happy": 0, "Neutral": 0}
-                emotion_F1_scores = {"Angry": 0, "Sad": 0, "Happy": 0, "Neutral": 0}
-                
-                emotion_num_actual = [
-                    valid_conf[0][0] + valid_conf[0][1] + valid_conf[0][2] + valid_conf[0][3],
-                    valid_conf[1][0] + valid_conf[1][1] + valid_conf[1][2] + valid_conf[1][3],
-                    valid_conf[2][0] + valid_conf[2][1] + valid_conf[2][2] + valid_conf[2][3],
-                    valid_conf[3][0] + valid_conf[3][1] + valid_conf[3][2] + valid_conf[3][3]
-                ]
 
-                emotion_num_predicted = [
-                    valid_conf[0][0] + valid_conf[1][0] + valid_conf[2][0] + valid_conf[3][0],
-                    valid_conf[0][1] + valid_conf[1][1] + valid_conf[2][1] + valid_conf[3][1],
-                    valid_conf[0][2] + valid_conf[1][2] + valid_conf[2][2] + valid_conf[3][2],
-                    valid_conf[0][3] + valid_conf[1][3] + valid_conf[2][3] + valid_conf[3][3]
-                ]
+                # calculate macro average metrics
+                valid_recall_ua = recall(np.argmax(valid_label, 1), np.argmax(y_valid, 1), average='macro')
+                valid_precision_ua = precision(np.argmax(valid_label, 1), np.argmax(y_valid, 1), average='macro')
+                # there are two ways of calculating macro f1 score
+                # way 1: f1 of unweighted average recall and precision
+                valid_f1_ua = 2 * valid_recall_ua * valid_precision_ua / (valid_recall_ua + valid_precision_ua)
+                # way 2: unweighted average of class-wise f1 scores
+                # valid_f1_ua = f1(np.argmax(valid_label, 1), np.argmax(y_valid, 1), average='macro')
 
-                # Calculate macro average metrics
-                emotion_index = {"Angry": 0, "Sad": 1, "Happy": 2, "Neutral": 3}
-                num_emotion = 4
-                ua_recall = 0
-                ua_precision = 0
-
-                for emotion in ["Angry", "Sad", "Happy", "Neutral"]:
-                    emotion_recall, emotion_precision, emotion_F1_score = calculate_metric(
-                        valid_conf, emotion_num_actual, emotion_num_predicted, emotion_index[emotion])
-                    emotion_F1_scores[emotion] = emotion_F1_score
-                    emotion_recalls[emotion] = emotion_recall
-                    emotion_precisions[emotion] = emotion_precision
-                    ua_recall += emotion_recall
-                    ua_precision += emotion_precision
-
-                ua_recall = ua_recall / num_emotion
-                ua_precision = ua_precision / num_emotion
-                ua_F1_score = 2 * ua_precision * ua_recall / (ua_precision + ua_recall)
+                # calculate class-wise metrics
+                emotion_indices = {"Angry": 0, "Sad": 1, "Happy": 2, "Neutral": 3}
+                valid_emotion_recalls = recall(np.argmax(valid_label, 1), np.argmax(y_valid, 1), average=None)
+                valid_emotion_precisions = precision(np.argmax(valid_label, 1), np.argmax(y_valid, 1), average=None)
+                valid_emotion_F1_scores = f1(np.argmax(valid_label, 1), np.argmax(y_valid, 1), average=None)
                 
                 # Optimize UA * Sad
-                valid_recall_ua_times_sad = valid_recall_ua * emotion_recalls["Sad"]
+                sad_index = emotion_indices["Sad"]
+                valid_recall_ua_times_sad = valid_recall_ua * valid_emotion_recalls[sad_index]
                 
                 if valid_recall_ua_times_sad >= best_valid_ua_times_sad:
                     best_valid_ua_times_sad = valid_recall_ua_times_sad
@@ -195,8 +175,8 @@ def train():
                 print("Best Valid UA * Sad Recall: %3.4g" % best_valid_ua_times_sad)
                 print("*****************************************************************")
                 print("Performance on validation set:")
-                print("Sad F1 Score: %3.4g" % emotion_F1_scores["Sad"])
-                print("UA F1 Score: %3.4g" % ua_F1_score)
+                print("Sad F1 Score: %3.4g" % valid_emotion_F1_scores[sad_index])
+                print("UA F1 Score: %3.4g" % valid_f1_ua)
 
 
 if __name__ == '__main__':

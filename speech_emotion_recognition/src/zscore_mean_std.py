@@ -21,6 +21,7 @@ filter_num = 40
 
 
 def add_to_list(train_nums, dataset_index, combined_train_data, static, delta1, delta2):
+    """Add data to training data list"""
     train_num = train_nums[dataset_index]
     combined_train_data[dataset_index]["mel"][train_num * 300:(train_num + 1) * 300] = static
     combined_train_data[dataset_index]["d_mel"][train_num * 300:(train_num + 1) * 300] = delta1
@@ -29,6 +30,7 @@ def add_to_list(train_nums, dataset_index, combined_train_data, static, delta1, 
 
 
 def get_mean_std(combined_train_data, dataset_indices):
+    """Calculate and save the mean and standard deviation for each channel of 3-d mel-spec, for each dataset"""
     dataset_mean1 = {}
     dataset_std1 = {}
     dataset_mean2 = {}
@@ -58,13 +60,14 @@ def get_mean_std(combined_train_data, dataset_indices):
 
 
 def extract_features(record_path, record, train_nums, dataset_index, combined_train_data):
+    """Extract 3-d mel-spectrogram, format it to 300 (frames) * 40 (filter) segments."""
     data, time, rate = read_file(record_path)
     mel_spec, delta1, delta2, time = extract_3d_mel(data, rate, filter_num)
 
     is_training_set, is_validation_set, is_test_set = split_dataset(record)
 
     if is_training_set:  # neutral data in the training set
-        if time <= 300:  # the pre-set length of 3d-mel is 300
+        if time <= 300:
             static1, delta11, delta21 = add_padding(mel_spec, delta1, delta2)
 
             add_to_list(train_nums, dataset_index, combined_train_data, static1, delta11, delta21)
@@ -88,7 +91,7 @@ def read_combined_dataset():
     neutral_train_num_DU = 72  # Urdu
     neutral_train_num_DR = 382  # RAVDESS
     neutral_train_num_DS = 110  # SAVEE
-
+    
     # number of neutral utterances (1 recording is 1 utterance)
     # utterance_nums = {"DG": 104, "DU": 72, "DR": 192, "DS": 60}
 
