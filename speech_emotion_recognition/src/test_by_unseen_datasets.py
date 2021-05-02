@@ -28,8 +28,8 @@ tf.app.flags.DEFINE_integer('image_height', 300, 'image height')
 tf.app.flags.DEFINE_integer('image_width', 40, 'image width')
 tf.app.flags.DEFINE_integer('image_channel', 3, 'image channels as input')
 
-tf.app.flags.DEFINE_string('testdata_path', './test_data/IEMOCAP.pkl', 'data from IEMOCAP normalized by neutral')
-# tf.app.flags.DEFINE_string('testdata_path', './test_data/CASIA.pkl', 'data from CASIA normalized by neutral')
+tf.app.flags.DEFINE_string('testdata_path', '../test_data/IEMOCAP.pkl', 'data from IEMOCAP normalized by neutral')
+# tf.app.flags.DEFINE_string('testdata_path', '../test_data/CASIA.pkl', 'data from CASIA normalized by neutral')
 
 FLAGS = tf.app.flags.FLAGS
 
