@@ -4,7 +4,7 @@ import os
 import matplotlib.ticker as mtick
 from matplotlib import pyplot as plt
 
-ONE_HOUR = 3600 # SECONDS
+ONE_HOUR = 3600  # SECONDS
 
 
 def date_parser(timestamps):
