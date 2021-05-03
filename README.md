@@ -142,6 +142,12 @@ or [downloads Linux](https://developer.softbankrobotics.com/nao6/downloads/nao6-
   and [Configure NAO](https://developer.softbankrobotics.com/nao6/nao-documentation/nao-user-guide/first-steps-nao/configure-nao)
 
 #### Run the system
+* Before connecting to NAO, test the system setup without NAO by
+```
+cd speech_emotion_monitoring_system
+cd EmotionMonitoringSystem
+python test_flow_without_nao.py
+```
 * Connect the externel computer to the same WiFi as NAO robot
 * Get robot IP by pressing NAO's chest button
 * Run the system

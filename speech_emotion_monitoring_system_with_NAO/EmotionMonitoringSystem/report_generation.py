@@ -1,6 +1,13 @@
-import pandas as pd
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+"""
+Generate figures for emotion report.
+"""
+
 import time
 import os
+
+import pandas as pd
 import matplotlib.ticker as mtick
 from matplotlib import pyplot as plt
 

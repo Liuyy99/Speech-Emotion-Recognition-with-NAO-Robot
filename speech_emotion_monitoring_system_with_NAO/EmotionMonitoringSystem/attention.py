@@ -1,10 +1,5 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
-"""
-Created on Thu Jul 19 14:54:52 2018
-
-@author: hexuanji
-"""
 
 import tensorflow as tf
 

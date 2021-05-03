@@ -1,6 +1,5 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
-# 6 layers + fully connected layers
 """
 This module implements the ACRNN (6 CNN layers + LSTM + Attention layer + Fully connected layer + Softmax layer)
 architecture.

@@ -1,6 +1,12 @@
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+"""
+Pre-process speech signal.
+"""
 import wave
-import numpy as np
 import os
+
+import numpy as np
 import speech_recognition as sr
 from pydub import AudioSegment
 
@@ -8,9 +14,11 @@ SILENCE_THRESHOLD = -50.0
 CHUNK_SIZE = 20
 TIME_THRESHOLD = 400
 
+
 def get_record_length(filename):
     sound = AudioSegment.from_file(filename, format="wav")
     return len(sound)
+
 
 def read_file(filename):
     sound = AudioSegment.from_file(filename, format="wav")
@@ -23,11 +31,13 @@ def read_file(filename):
     file.close()
     return sound, wavedata, speech_time, framerate
 
+
 def is_silence(sound, silence_threshold=SILENCE_THRESHOLD):
     if sound.dBFS < silence_threshold:
         return True
     else:
         return False
+
 
 def detect_sound_segment(sound, chunk_size=CHUNK_SIZE):
     '''
@@ -69,6 +79,7 @@ def detect_sound_segment(sound, chunk_size=CHUNK_SIZE):
 
     return merged_sound_segment
 
+
 def split_sound_into_segements(sound, segments_start_end):
     segments = []
     for start, end in segments_start_end:
@@ -78,8 +89,6 @@ def split_sound_into_segements(sound, segments_start_end):
         segments.append(segment)
     return segments
 
-def is_voice_frequency():
-    return True
 
 def check_speech_text(speech_file):
     recognizer = sr.Recognizer()
@@ -92,6 +101,7 @@ def check_speech_text(speech_file):
         print("Could not understand audio")
         return False
     return True
+
 
 def pre_process_record(speech_path):
     # Step 1: read record

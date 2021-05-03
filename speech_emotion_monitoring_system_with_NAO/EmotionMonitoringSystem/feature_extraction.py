@@ -1,15 +1,25 @@
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+"""
+Provide functions to extract and normalize 3-d mel-spec feature
+"""
+
 import wave
-import numpy as np
-import python_speech_features as ps
 import os
 import cPickle
 
+import numpy as np
+import python_speech_features as ps
+
 eps = 1e-5
+
+
 def wgn(x, snr):
     snr = 10**(snr/10.0)
     xpower = np.sum(x**2)/len(x)
     npower = xpower / snr
     return np.random.randn(len(x)) * np.sqrt(npower)
+
 
 def getlogspec(signal,samplerate=16000,winlen=0.02,winstep=0.01,
                nfilt=26,nfft=399,lowfreq=0,highfreq=None,preemph=0.97,
@@ -20,25 +30,28 @@ def getlogspec(signal,samplerate=16000,winlen=0.02,winstep=0.01,
     pspec = ps.sigproc.logpowspec(frames,nfft)
     return pspec
 
+
 def read_file(filename):
     file = wave.open(filename, 'r')
     params = file.getparams()
     nchannels, sampwidth, framerate, wav_length = params[:4]
     str_data = file.readframes(wav_length)
     wavedata = np.fromstring(str_data, dtype = np.short)
-    #wavedata = np.float(wavedata*1.0/max(abs(wavedata)))  # normalization)
     speech_time = np.arange(0,wav_length) * (1.0/framerate)
     file.close()
     return wavedata, speech_time, framerate
+
 
 def normalization(data, mean, std, eps):
     data = (data - mean) / (std + eps)
     return data
 
+
 def load_data():
     f = open('./zscore_Casia_40.pkl','rb')
     mean1, std1, mean2, std2, mean3, std3 = cPickle.load(f)
     return mean1, std1, mean2, std2, mean3, std3
+
 
 def extract_speech_feature(rootdir, num_of_record, num_of_segments):
     eps = 1e-5
@@ -67,7 +80,7 @@ def extract_speech_feature(rootdir, num_of_record, num_of_segments):
         speech_time = mel_spec.shape[0]
         record_list.append(speech)
 
-        if (speech_time <= 300):
+        if speech_time <= 300:
             pernums[speech_num] = 1
             part = mel_spec
             delta11 = delta1
@@ -97,6 +110,7 @@ def extract_speech_feature(rootdir, num_of_record, num_of_segments):
 
     return record_list, speech_data, pernums
 
+
 def get_segments_num(rootdir):
     filter_num = 40
     speech_segment_num = 0
@@ -109,7 +123,7 @@ def get_segments_num(rootdir):
         mel_spec = ps.logfbank(data, rate, nfilt=filter_num)
         speech_time = mel_spec.shape[0]
 
-        if (speech_time <= 300):
+        if speech_time <= 300:
             speech_segment_num = speech_segment_num + 1
         else:
             frames = divmod(speech_time - 300, 100)[0] + 1

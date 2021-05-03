@@ -1,6 +1,13 @@
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+"""
+Provide functions to load model and predict emotion
+"""
+
+import time
+
 import numpy as np
 import tensorflow as tf
-import time
 
 from acrnn1 import acrnn
 from feature_extraction import extract_speech_feature
@@ -17,6 +24,7 @@ Emotions = {0: "Angry", 1: "Sad", 2: "Happy", 3: "Neutral"}
 
 X = tf.placeholder(tf.float32, shape=[None, FLAGS.image_height, FLAGS.image_width, FLAGS.image_channel])
 Ylogits = acrnn(X, is_training=False)
+
 
 def predict(record_folder_path, num_of_record, num_of_segments):
     start = time.time()

@@ -1,13 +1,20 @@
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+"""
+Run in a loop of 20 seconds to collect speech data and analyse the emotion. Every 24 hours, emotion report is
+generated for doctors and caregivers to review.
+"""
+
 import os
 import sys
 import shutil
 import time
-
 import csv
 import logging
 logging.getLogger().setLevel("ERROR")
 
 from naoqi import ALProxy
+
 from speech_pre_processing import pre_process_record, get_record_length
 from feature_extraction import get_segments_num
 from emotion_prediction import predict
@@ -21,7 +28,7 @@ def establish_connection(robot_ip, robot_port):
     return tts, recorder
 
 
-def live_monitor_emotion(robot_ip, robot_port, tts, recorder, speech_root_path, emo_record_root, loop_length):
+def live_monitor_emotion(tts, recorder, speech_root_path, emo_record_root, loop_length):
     recorder.stopMicrophonesRecording()
     print 'emotion monitoring system started...'
     tts.say("hi I am your nao robot.")
