@@ -22,7 +22,7 @@ The code has been tested on Linux and on MacOS.
 #### Setup
 Python2.7, Tensorflow1.3.0, numpy, python-speech-features, sklearn, scipy
 
-#### Emotional Corpora
+#### Emotional corpora
 * Combined dataset (resampled and combined German Emo-db, SAVEE, RAVDESS, URDU datasets)
 
   4 languages -- German, British English, American English, Urdu; for training and validation
@@ -135,7 +135,8 @@ Tensorflow1.3.0, numpy, scipy, python_speech_features, pydub, SpeechRecognition,
 * Download Robot Setting from [downloads Mac](https://developer.softbankrobotics.com/nao6/downloads/nao6-downloads-mac) 
 or [downloads Linux](https://developer.softbankrobotics.com/nao6/downloads/nao6-downloads-linux)
 * (Skip this step if the WiFi connection has already been set up) 
-Connect the robot to ethernet, launch and connect Robot settings, and setup WiFi connection.
+
+  Connect the robot to ethernet, launch and connect Robot settings, and setup WiFi connection.
 
   For more details, please refer to [Get Robot Setting](https://developer.softbankrobotics.com/nao6/nao-documentation/nao-user-guide/first-steps-nao/get-robot-settings) 
   and [Configure NAO](https://developer.softbankrobotics.com/nao6/nao-documentation/nao-user-guide/first-steps-nao/configure-nao)
@@ -149,3 +150,5 @@ cd speech_emotion_monitoring_system
 cd EmotionMonitoringSystem
 python main.py <robot-ip>
 ```
+* Recordings will be saved in SpeechRecording folder. 
+* Every 24 hours, emotion report will be generated and saved to ReportFigure folder.
